@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Remera Oversize Orgánica",
+    "precio": 29.90,
+    "descripcion": "Remera confeccionada en algodón 100% orgánico de gramaje pesado, hombro caído y corte holgado.",
+    "talles": ["S", "M", "L", "XL"],
+    "imagen": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 2,
+    "nombre": "Pantalón Cargo Minimalista",
+    "precio": 59.90,
+    "descripcion": "Pantalón técnico con bolsillos ocultos y talle semi-ajustado. Confección duradera en sarga de algodón.",
+    "talles": ["M", "L", "XL"],
+    "imagen": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 3,
+    "nombre": "Saco Sastre Lino",
+    "precio": 89.90,
+    "descripcion": "Saco estructurado en mezcla de lino y viscosa. Ideal para lograr un estilo sofisticado de media estación.",
+    "talles": ["S", "M", "L"],
+    "imagen": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 4,
+    "nombre": "Camisa de Lino Crudo",
+    "precio": 45.00,
+    "descripcion": "Camisa clásica de cuello mao y botones de madera reciclada. Respirable, ligera y de textura única.",
+    "talles": ["S", "M", "L", "XL"],
+    "imagen": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 5,
+    "nombre": "Suéter de Punto Fino",
+    "precio": 65.00,
+    "descripcion": "Tejido suave en lana merina y algodón. Ajuste relajado y cuello redondo clásico con terminaciones acanaladas.",
+    "talles": ["S", "M", "L"],
+    "imagen": "https://images.unsplash.com/photo-1614975058789-41316d0e2e9c?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 6,
+    "nombre": "Pantalón Plisado Sastre",
+    "precio": 55.00,
+    "descripcion": "Corte de sastre contemporáneo con pinzas delanteras. Una pieza clave de silueta fluida para un look limpio.",
+    "talles": ["S", "M", "L", "XL"],
+    "imagen": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=800&q=80"
+  }
+]
