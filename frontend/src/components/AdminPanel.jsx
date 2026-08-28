@@ -1,3 +1,4 @@
+// Forzando el despliegue en Cloudflare
 import { useState, useEffect } from 'react';
 import { Trash2, Plus, Lock, UploadCloud, X } from 'lucide-react';
 
