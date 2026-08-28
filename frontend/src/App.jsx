@@ -29,16 +29,14 @@ export default function App() {
               </section>
 
               {/* Sección Nosotros */}
-              <section id="nosotros" className="bg-stone-100 py-20">
-                <div className="max-w-4xl mx-auto px-4 text-center">
-                  <h2 className="text-2xl font-bold text-stone-900 mb-6 uppercase tracking-widest">
-                    Nosotros
+              <section id="nosotros" className="w-full bg-stone-950 py-24 px-6 flex flex-col items-center text-center">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-widest uppercase text-white mb-6">
+                     Nosotros
                   </h2>
-                  <p className="text-stone-600 leading-relaxed max-w-2xl mx-auto">
-                    Somos Bajo Perfil. Una marca pensada para quienes buscan destacar sin gritar. 
-                    Diseñamos prendas con estilo minimalista, priorizando la calidad y los detalles.
-                  </p>
-                </div>
+                <p className="max-w-2xl text-stone-400 text-sm md:text-base font-light leading-relaxed">
+                   Somos Bajo Perfil. Una marca pensada para quienes buscan destacar sin gritar. Diseñamos
+                   prendas con estilo minimalista, priorizando la calidad y los detalles.
+                </p>
               </section>
 
               {/* Sección Contacto */}
@@ -62,8 +60,39 @@ export default function App() {
               </section>
 
               {/* Footer */}
-              <footer className="bg-stone-950 text-stone-400 py-8 text-center text-xs tracking-widest uppercase">
-                <p>&copy; {new Date().getFullYear()} Bajo Perfil. Todos los derechos reservados.</p>
+              {/* FOOTER */}
+              <footer className="w-full bg-stone-950 py-10 px-6 border-t border-stone-800">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                  <p className="text-[10px] tracking-widest uppercase text-stone-500">
+                    © 2026 BAJO PERFIL. TODOS LOS DERECHOS RESERVADOS.
+                  </p>
+                  
+                  <a 
+                    href="https://instagram.com/bajoperfilestudio" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-stone-500 hover:text-white transition-colors cursor-pointer group"
+                  >
+                    {/* SVG Nativo de Instagram (reemplaza a Lucide) */}
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="group-hover:scale-110 transition-transform"
+                    >
+                      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                    </svg>
+                    <span className="text-[10px] tracking-widest uppercase font-bold">Seguinos en Instagram</span>
+                  </a>
+                </div>
               </footer>
             </main>
           } 
