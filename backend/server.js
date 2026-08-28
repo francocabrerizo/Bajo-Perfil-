@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
-const jwt = require('jsonwebtoken'); // Importamos la librería de seguridad
+const jwt = require('jsonwebtoken'); 
 
 const prisma = new PrismaClient();
 const app = express();
@@ -14,7 +14,6 @@ app.use(express.json());
 // MIDDLEWARE DE SEGURIDAD (El patovica)
 // ==========================================
 const verificarToken = (req, res, next) => {
-  // Busca el token en los headers de la petición
   const token = req.headers['authorization'];
   
   if (!token) {
@@ -22,11 +21,9 @@ const verificarToken = (req, res, next) => {
   }
 
   try {
-    // Si el token tiene el prefijo "Bearer ", se lo sacamos
     const tokenLimpio = token.split(" ")[1];
-    // Verificamos si la firma es válida usando nuestro secreto del .env
     jwt.verify(tokenLimpio, process.env.JWT_SECRET);
-    next(); // Si está todo ok, lo dejamos pasar a la ruta
+    next(); 
   } catch (error) {
     return res.status(401).json({ error: "Token inválido o expirado." });
   }
@@ -40,9 +37,7 @@ const verificarToken = (req, res, next) => {
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
   
-  // Comparamos la contraseña que manda el frontend con la de nuestro .env
   if (password === process.env.ADMIN_PASSWORD) {
-    // Le firmamos un token que dura 12 horas
     const token = jwt.sign({ admin: true }, process.env.JWT_SECRET, { expiresIn: '12h' });
     res.json({ token });
   } else {
@@ -50,10 +45,12 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// LEER: Pública (Cualquiera puede ver los productos)
+// LEER: Pública (Cualquiera puede ver los productos con sus talles Y FOTOS)
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await prisma.product.findMany({ include: { sizes: true } });
+    const products = await prisma.product.findMany({ 
+      include: { sizes: true, images: true } 
+    });
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: "Error al buscar productos" });
@@ -61,14 +58,11 @@ app.get('/api/products', async (req, res) => {
 });
 
 // CREAR: Privada (Requiere verificarToken)
-// CREAR: Privada (Requiere verificarToken)
 app.post('/api/products', verificarToken, async (req, res) => {
   try {
-    // Ahora recibimos un array de "images" (URLs) en lugar de una sola
     const { name, price, description, images, sizes } = req.body;
     
     const sizeData = sizes.map(sizeName => ({ name: sizeName, stock: 10 }));
-    // Mapeamos las URLs para que Prisma las guarde en su nueva tabla
     const imageData = images.map(imgUrl => ({ url: imgUrl }));
     
     const newProduct = await prisma.product.create({
@@ -77,29 +71,17 @@ app.post('/api/products', verificarToken, async (req, res) => {
         price: Number(price), 
         description,
         sizes: { create: sizeData },
-        images: { create: imageData } // ¡Magia de Prisma!
+        images: { create: imageData }
       },
       include: { 
         sizes: true,
-        images: true // Le decimos que nos devuelva las fotos también
+        images: true 
       }
     });
     res.status(201).json(newProduct);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error creando producto" });
-  }
-});
-
-// En la ruta GET ('/api/products'), asegúrate de incluir las imágenes también:
-app.get('/api/products', async (req, res) => {
-  try {
-    const products = await prisma.product.findMany({ 
-      include: { sizes: true, images: true } // ¡Agregá images: true acá!
-    });
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: "Error al buscar productos" });
   }
 });
 

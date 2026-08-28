@@ -5,7 +5,7 @@ export default function ProductCard({ product, onClick }) {
   const descripcion = product.descripcion || product.description;
   const talles = product.talles || product.sizes;
   const imagen = (product.images && product.images[0]?.url) || product.imagen || product.image;
-
+  
   return (
     <div 
       className="group flex flex-col bg-white border border-stone-100 overflow-hidden transition-all duration-300 hover:shadow-sm cursor-pointer"
