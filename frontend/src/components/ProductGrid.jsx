@@ -7,7 +7,8 @@ export default function ProductGrid() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/products')
+    // CORRECCIÓN: Ruta limpia apuntando a /products
+    fetch('https://bajo-perfil-backend.onrender.com/api/products')
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
@@ -56,7 +57,6 @@ function ProductCard({ product, onClick }) {
   const descripcion = product.descripcion || product.description;
   const talles = product.talles || product.sizes;
   
-  // MAGIA APLICADA AQUÍ ABAJO
   const imagen = (product.images && product.images[0]?.url) || product.imagen || product.image;
 
   return (

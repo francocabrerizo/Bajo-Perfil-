@@ -14,9 +14,8 @@ export default function AdminPanel() {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false); // Estado para mostrar "Subiendo..."
+  const [isUploading, setIsUploading] = useState(false); 
   
-  // Ahora el formData tiene un array vacío de 'images'
   const [formData, setFormData] = useState({
     name: '', price: '', description: '', images: [], sizes: []
   });
@@ -26,7 +25,8 @@ export default function AdminPanel() {
     setLoginError('');
     
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      // CORRECCIÓN: Ruta limpia a /login
+      const response = await fetch('https://bajo-perfil-backend.onrender.com/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -51,7 +51,8 @@ export default function AdminPanel() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/products');
+      // CORRECCIÓN: Ruta limpia a /products
+      const response = await fetch('https://bajo-perfil-backend.onrender.com/api/products');
       const data = await response.json();
       setProducts(data);
       setLoading(false);
@@ -73,14 +74,12 @@ export default function AdminPanel() {
     });
   };
 
-  // === LÓGICA DE SUBIDA A CLOUDINARY ===
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setIsUploading(true);
     
-    // Armamos el "paquete" para enviar a Cloudinary
     const data = new FormData();
     data.append('file', file);
     data.append('upload_preset', UPLOAD_PRESET);
@@ -92,7 +91,6 @@ export default function AdminPanel() {
       });
       const fileData = await response.json();
       
-      // Agregamos la nueva URL a nuestro array de imágenes
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, fileData.secure_url]
@@ -105,7 +103,6 @@ export default function AdminPanel() {
     }
   };
 
-  // Función para sacar una foto si nos equivocamos antes de publicar
   const removePreviewImage = (indexToRemove) => {
     setFormData(prev => ({
       ...prev,
@@ -119,7 +116,8 @@ export default function AdminPanel() {
     if (formData.images.length === 0) return alert("Subí al menos una foto.");
 
     try {
-      const response = await fetch('http://localhost:3000/api/products', {
+      // CORRECCIÓN: Ruta limpia a /products
+      const response = await fetch('https://bajo-perfil-backend.onrender.com/api/products', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -143,7 +141,8 @@ export default function AdminPanel() {
   const handleDelete = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este producto?")) return;
     try {
-      const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+      // CORRECCIÓN: Ruta limpia a /products/${id} usando backticks
+      const response = await fetch(`https://bajo-perfil-backend.onrender.com/api/products/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -158,7 +157,6 @@ export default function AdminPanel() {
   };
 
   if (!token) {
-    // ... (El código del login sigue igual)
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-100 p-4">
         <div className="max-w-md w-full bg-white p-8 shadow-xl border border-stone-200">
@@ -190,16 +188,13 @@ export default function AdminPanel() {
           <h2 className="text-xl font-bold text-stone-900 mb-6 uppercase tracking-widest">Nuevo Ingreso</h2>
           <form onSubmit={handleSubmit} className="bg-stone-50 p-6 border border-stone-200 flex flex-col gap-4">
             
-            {/* ... inputs de nombre, precio, descripción siguen igual ... */}
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Nombre</label><input type="text" required className="w-full p-3 border border-stone-300 bg-white" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Precio ($)</label><input type="number" required className="w-full p-3 border border-stone-300 bg-white" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} /></div>
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Descripción</label><textarea required rows="3" className="w-full p-3 border border-stone-300 bg-white resize-none" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} /></div>
 
-            {/* NUEVO: Subida de Imágenes */}
             <div>
               <label className="text-xs font-bold text-stone-500 uppercase tracking-widest block mb-2">Fotos de la Prenda</label>
               
-              {/* Grilla de miniaturas subidas */}
               {formData.images.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {formData.images.map((url, idx) => (
@@ -213,7 +208,6 @@ export default function AdminPanel() {
                 </div>
               )}
 
-              {/* Botón para subir archivo (Ocultamos el input feo y lo enlazamos al label) */}
               <label className={`w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-stone-300 text-stone-500 hover:border-stone-900 hover:text-stone-900 transition-colors cursor-pointer bg-white ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <UploadCloud className="w-5 h-5" />
                 <span className="text-sm font-bold tracking-widest uppercase">
@@ -229,7 +223,6 @@ export default function AdminPanel() {
               </label>
             </div>
 
-            {/* Talles */}
             <div>
               <label className="text-xs font-bold text-stone-500 uppercase block mb-2">Talles</label>
               <div className="flex flex-wrap gap-2">
@@ -252,7 +245,6 @@ export default function AdminPanel() {
               {products.length === 0 ? <p className="p-6">No hay productos.</p> : products.map(product => (
                 <div key={product.id} className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-4">
-                    {/* Leemos la primera imagen del nuevo array de la base de datos */}
                     <img src={product.images && product.images[0] ? product.images[0].url : ''} alt={product.name} className="w-16 h-20 object-cover bg-stone-100 border" />
                     <div>
                       <h3 className="font-bold text-sm uppercase">{product.name}</h3>
