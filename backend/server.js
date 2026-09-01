@@ -105,7 +105,7 @@ app.put('/api/products/:id', verificarToken, async (req, res) => {
       data: {
         name, 
         price: Number(price), 
-        precioOriginal: precioOriginal ? Number(precioOriginal) : null,
+        precioOriginal: precioOriginal ? Number(precioOriginal) : null, 
         description,
         categoria: categoria || 'Remera',
         // El truco: borramos las relaciones viejas y creamos las nuevas en un solo paso
@@ -190,15 +190,13 @@ app.post('/api/shipping/quote', async (req, res) => {
 
     res.json(cotizacionesFormateadas);
 
-  } catch (error) {
+ } catch (error) {
     console.error("Error cotizando con Zipnova:", error);
     res.status(500).json({ error: "Error al calcular el envío" });
   }
-
+})
 
 app.listen(PORT, () => {
   console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
 });
 
-
-});
