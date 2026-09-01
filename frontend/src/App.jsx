@@ -9,6 +9,13 @@ export default function App() {
   return (
     <BrowserRouter>
       {/* El Navbar y el Carrito quedan fuera de las rutas para verse en toda la web */}
+      <div className="w-full bg-red-600 text-white overflow-hidden py-2">
+        <div className="flex justify-center items-center gap-4 text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase">
+          <span className="hidden sm:inline"></span>
+          <p>BAJO PERFIL WEB INAUGURACION - Hasta 20% OFF</p>
+          <span className="hidden sm:inline"></span>
+        </div>
+      </div>
       <Navbar />
       <CartDrawer /> 
       

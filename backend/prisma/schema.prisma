@@ -10,6 +10,7 @@ model Product {
   id          Int      @id @default(autoincrement())
   name        String
   price       Float
+  priceOriginal Float?
   description String
   images      Image[]
   categoria String?

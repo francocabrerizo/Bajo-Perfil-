@@ -3,32 +3,54 @@ import { X, Trash2 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, getTotalPrice } = useCartStore();
+  // Traemos los nuevos estados del store que modificaste antes
+  const { items, isOpen, closeCart, removeItem, getTotalPrice, getFinalTotal, shippingCost, setShipping, zipCode } = useCartStore();
 
-  // NUEVOS ESTADOS PARA EL ENVÍO
   const [postalCode, setPostalCode] = useState('');
-  const [shippingCost, setShippingCost] = useState(0);
-  const [shippingCalculated, setShippingCalculated] = useState(false);
+  
+  // NUEVOS ESTADOS PARA ZIPNOVA
+  const [loadingEnvio, setLoadingEnvio] = useState(false);
+  const [opcionesEnvio, setOpcionesEnvio] = useState(null);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
   if (!isOpen) return null;
 
-  // Lógica de cálculo de envío
-  const calculateShipping = () => {
-    if (!postalCode.trim()) return;
-    
-    if (postalCode.trim() === '7600') {
-      setShippingCost(1500); // Envío local Mar del Plata
-    } else {
-      setShippingCost(4500); // Envío resto del país
+  // Lógica de cálculo de envío REAL con tu backend
+  const calculateShipping = async () => {
+    if (!postalCode.trim() || postalCode.length < 4) {
+      setErrorEnvio('Código postal inválido');
+      return;
     }
-    setShippingCalculated(true);
+    
+    setLoadingEnvio(true);
+    setErrorEnvio('');
+    
+    try {
+      const response = await fetch('https://bajo-perfil-backend.onrender.com/api/shipping/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigoPostalDestino: postalCode })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setOpcionesEnvio(data);
+      } else {
+        setErrorEnvio('Error al cotizar');
+      }
+    } catch (err) {
+      setErrorEnvio('Problemas de conexión');
+    } finally {
+      setLoadingEnvio(false);
+    }
   };
 
-  // Lógica para enviar el pedido por WhatsApp actualizada
+  // Lógica para enviar el pedido por WhatsApp actualizada al nuevo Store
   const handleWhatsAppCheckout = () => {
     const phoneNumber = "5492246488161"; 
     const subtotal = getTotalPrice();
-    const totalFinal = shippingCalculated ? subtotal + shippingCost : subtotal;
+    const totalFinal = getFinalTotal();
     
     let message = "¡Hola Bajo Perfil! Quiero confirmar mi pedido:\n\n";
     
@@ -40,8 +62,8 @@ export default function CartDrawer() {
     
     message += `\nSubtotal: $${subtotal.toLocaleString('es-AR')}`;
     
-    if (shippingCalculated) {
-      message += `\nEnvío (CP: ${postalCode}): $${shippingCost.toLocaleString('es-AR')}`;
+    if (shippingCost > 0) {
+      message += `\nEnvío (CP: ${zipCode}): $${shippingCost.toLocaleString('es-AR')}`;
     } else {
       message += `\nEnvío: A coordinar`;
     }
@@ -111,7 +133,7 @@ export default function CartDrawer() {
         {items.length > 0 && (
           <div className="p-6 border-t border-stone-200 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.03)] flex flex-col gap-4">
             
-            {/* NUEVO: Calculadora de envío */}
+            {/* Calculadora de envío conectada a la API */}
             <div>
               <label className="block text-[10px] font-bold text-stone-500 tracking-widest uppercase mb-2">
                 Calcular Envío
@@ -126,31 +148,55 @@ export default function CartDrawer() {
                 />
                 <button
                   onClick={calculateShipping}
-                  className="px-6 py-3 bg-stone-200 text-stone-900 text-xs font-bold tracking-widest uppercase hover:bg-stone-300 transition-colors cursor-pointer"
+                  disabled={loadingEnvio}
+                  className="px-6 py-3 bg-stone-200 text-stone-900 text-xs font-bold tracking-widest uppercase hover:bg-stone-300 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  Calcular
+                  {loadingEnvio ? '...' : 'Calcular'}
                 </button>
               </div>
+              
+              {errorEnvio && <p className="text-red-500 text-[10px] mt-2 font-medium uppercase">{errorEnvio}</p>}
+
+              {/* Lista de opciones de envío */}
+              {opcionesEnvio && (
+                <div className="mt-3 flex flex-col gap-2 max-h-32 overflow-y-auto pr-1">
+                  {opcionesEnvio.map((opcion) => (
+                    <div 
+                      key={opcion.id} 
+                      onClick={() => setShipping(opcion.precio, postalCode)}
+                      className={`flex items-center justify-between p-3 border cursor-pointer transition-colors ${
+                        shippingCost === opcion.precio ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-white hover:border-stone-400'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-[11px] font-bold uppercase text-stone-900">{opcion.correo}</p>
+                        <p className="text-[9px] text-stone-500 uppercase tracking-widest mt-0.5">{opcion.servicio} ({opcion.dias_estimados})</p>
+                      </div>
+                      <p className="text-xs font-bold text-stone-900">${opcion.precio.toLocaleString('es-AR')}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Resumen de totales actualizado */}
-            <div className="flex flex-col gap-2 pt-2">
+            {/* Resumen de totales actualizado leyendo del Store */}
+            <div className="flex flex-col gap-2 pt-2 border-t border-stone-100">
               <div className="flex justify-between items-center text-sm text-stone-500 font-medium">
                 <span>Subtotal</span>
                 <span>${getTotalPrice().toLocaleString('es-AR')}</span>
               </div>
               
-              {shippingCalculated && (
+              {shippingCost > 0 && (
                 <div className="flex justify-between items-center text-sm text-stone-500 font-medium">
-                  <span>Envío (CP: {postalCode})</span>
+                  <span>Envío (CP: {zipCode})</span>
                   <span>${shippingCost.toLocaleString('es-AR')}</span>
                 </div>
               )}
               
-              <div className="flex justify-between items-center pt-2 border-t border-stone-100">
+              <div className="flex justify-between items-center pt-2">
                 <span className="text-sm font-bold tracking-widest uppercase text-stone-900">Total Final</span>
                 <span className="text-xl font-bold text-stone-900">
-                  ${(getTotalPrice() + (shippingCalculated ? shippingCost : 0)).toLocaleString('es-AR')}
+                  ${getFinalTotal().toLocaleString('es-AR')}
                 </span>
               </div>
             </div>

@@ -5,6 +5,10 @@ export const useCartStore = create((set, get) => ({
   items: [],
   // El estado visual del panel
   isOpen: false,
+  
+  // NUEVO: Estados para el envío
+  shippingCost: 0,
+  zipCode: '',
 
   // Funciones para abrir y cerrar
   openCart: () => set({ isOpen: true }),
@@ -39,6 +43,14 @@ export const useCartStore = create((set, get) => ({
     });
   },
 
-  // Calcular precio total
+  // NUEVO: Función para guardar el costo de envío cuando el usuario calcula
+  setShipping: (cost, cp) => {
+    set({ shippingCost: Number(cost), zipCode: cp });
+  },
+
+  // Calcular precio total (Solo la ropa)
   getTotalPrice: () => get().items.reduce((total, item) => total + (Number(item.precio || item.price) * item.quantity), 0),
+
+  // NUEVO: Calcular precio final (Ropa + Envío)
+  getFinalTotal: () => get().getTotalPrice() + get().shippingCost,
 }));

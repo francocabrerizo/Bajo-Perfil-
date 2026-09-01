@@ -20,11 +20,11 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false); 
   
-  // NUEVO: Estado para saber si estamos editando (guarda el ID del producto)
   const [editingId, setEditingId] = useState(null);
 
+  // ESTADO INICIAL ACTUALIZADO: Agregamos precioOriginal
   const [formData, setFormData] = useState({
-    name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: []
+    name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: []
   });
 
   const handleLogin = async (e) => {
@@ -119,25 +119,24 @@ export default function AdminPanel() {
     }));
   };
 
-  // NUEVO: Función para cargar los datos de un producto en el formulario
   const handleEditClick = (product) => {
     setEditingId(product.id);
     setFormData({
       name: product.name,
       price: product.price,
+      // NUEVO: Cargamos el precio original si existe
+      precioOriginal: product.precioOriginal || '',
       description: product.description,
       categoria: product.categoria || 'Remera',
-      images: product.images.map(img => img.url), // Extraemos solo los links
-      sizes: product.sizes.map(s => s.name)       // Extraemos solo los nombres de los talles
+      images: product.images.map(img => img.url), 
+      sizes: product.sizes.map(s => s.name)       
     });
-    // Hacemos scroll suave hacia arriba para que el admin vea el formulario
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // NUEVO: Función para cancelar la edición y limpiar el formulario
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+    setFormData({ name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
   };
 
   const handleSubmit = async (e) => {
@@ -145,7 +144,6 @@ export default function AdminPanel() {
     if (formData.sizes.length === 0) return alert("Seleccioná al menos un talle.");
     if (formData.images.length === 0) return alert("Subí al menos una foto.");
 
-    // NUEVO: Decidimos si usamos POST (crear) o PUT (actualizar)
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId 
       ? `https://bajo-perfil-backend.onrender.com/api/products/${editingId}`
@@ -166,8 +164,8 @@ export default function AdminPanel() {
         return handleLogout();
       }
 
-      setFormData({ name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: [] });
-      setEditingId(null); // Limpiamos el estado de edición
+      setFormData({ name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+      setEditingId(null); 
       fetchProducts();
     } catch (error) {
       console.error('Error al guardar producto:', error);
@@ -194,7 +192,6 @@ export default function AdminPanel() {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-100 p-4">
-        {/* ... (Tu formulario de login se mantiene intacto) ... */}
         <div className="max-w-md w-full bg-white p-8 shadow-xl border border-stone-200">
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 bg-stone-900 text-white flex items-center justify-center mb-4 rounded-full">
@@ -221,7 +218,6 @@ export default function AdminPanel() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-1">
-          {/* NUEVO: Cambiamos el título dinámicamente */}
           <h2 className="text-xl font-bold text-stone-900 mb-6 uppercase tracking-widest">
             {editingId ? 'Editando Prenda' : 'Nuevo Ingreso'}
           </h2>
@@ -242,7 +238,31 @@ export default function AdminPanel() {
               </select>
             </div>
 
-            <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Precio ($)</label><input type="number" required className="w-full p-3 border border-stone-300 bg-white" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} /></div>
+            {/* NUEVO: GRILLA DE PRECIOS */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-stone-500 uppercase block mb-2">Precio de Venta ($)</label>
+                <input 
+                  type="number" 
+                  required 
+                  className="w-full p-3 border border-stone-300 bg-white" 
+                  value={formData.price} 
+                  onChange={(e) => setFormData({...formData, price: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-stone-500 uppercase block mb-2">
+                  Precio Anterior <span className="text-[10px] font-normal">(Opcional)</span>
+                </label>
+                <input 
+                  type="number" 
+                  className="w-full p-3 border border-stone-300 bg-white" 
+                  value={formData.precioOriginal} 
+                  onChange={(e) => setFormData({...formData, precioOriginal: e.target.value})} 
+                />
+              </div>
+            </div>
+
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Descripción</label><textarea required rows="3" className="w-full p-3 border border-stone-300 bg-white resize-none" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} /></div>
 
             <div>
@@ -297,11 +317,9 @@ export default function AdminPanel() {
 
             <div className="mt-4 flex flex-col gap-2">
               <button type="submit" disabled={isUploading} className="w-full h-12 bg-stone-900 text-white text-sm font-bold uppercase hover:bg-stone-800 disabled:bg-stone-400">
-                {/* NUEVO: Cambiamos el texto del botón dinámicamente */}
                 {editingId ? 'Actualizar Producto' : <><Plus className="w-4 h-4 inline mr-2" /> Publicar Producto</>}
               </button>
               
-              {/* NUEVO: Botón para cancelar la edición */}
               {editingId && (
                 <button type="button" onClick={handleCancelEdit} className="w-full h-12 bg-white border border-stone-300 text-stone-600 text-sm font-bold uppercase hover:bg-stone-50">
                   Cancelar Edición
@@ -322,14 +340,19 @@ export default function AdminPanel() {
                     <div>
                       <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mb-1">{product.categoria || 'Sin categoría'}</p>
                       <h3 className="font-bold text-sm uppercase">{product.name}</h3>
-                      <p className="text-xs mb-2">${product.price.toLocaleString('es-AR')}</p>
+                      <p className="text-xs mb-2">
+                        {/* Mostramos también en el panel si la prenda tiene descuento aplicado */}
+                        {product.precioOriginal && (
+                          <span className="line-through text-stone-400 mr-2">${product.precioOriginal.toLocaleString('es-AR')}</span>
+                        )}
+                        ${product.price.toLocaleString('es-AR')}
+                      </p>
                       <div className="flex flex-wrap gap-1">
                         {product.sizes?.map(s => <span key={s.id} className="px-2 py-1 bg-stone-200 text-[10px]">{s.name}</span>)}
                       </div>
                     </div>
                   </div>
                   
-                  {/* NUEVO: Botón de editar junto al de eliminar */}
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => handleEditClick(product)} 
