@@ -10,3 +10,21 @@ html {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker 60s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}

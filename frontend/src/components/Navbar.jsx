@@ -37,7 +37,11 @@ export default function Navbar() {
           <div className="flex-shrink-0 flex items-center">
             {/* El logo ahora usa Link para ir siempre a la ruta raíz de forma segura */}
             <Link to="/" className="font-bold text-xl tracking-widest uppercase text-stone-900">
-              Bajo Perfil
+              <img
+              src="/favicon.png"
+              alt="Bajo Perfil"
+              className="h-20 md:h-20 w-auto object-contain hover:opacity-80 transition-opacity duration-200"
+               />
             </Link>
           </div>
           

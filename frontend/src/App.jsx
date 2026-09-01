@@ -6,16 +6,32 @@ import CartDrawer from './components/CartDrawer';
 import AdminPanel from './components/AdminPanel';
 
 export default function App() {
+  
+  // Mensaje de la barra superior
+  const mensaje = "BAJO PERFIL WEB INAUGURACION - Hasta 20% OFF";
+  
+  // Multiplicamos el texto 8 veces para que llene cualquier pantalla
+  const repeticiones = [...Array(8)].map((_, i) => (
+    <div key={i} className="flex items-center">
+      <span className="mx-6 text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+        {mensaje}
+      </span>
+      {/* El rayito/estrella separador */}
+      <span className="text-white/50 text-xs">✦</span> 
+    </div>
+  ));
+
   return (
     <BrowserRouter>
-      {/* El Navbar y el Carrito quedan fuera de las rutas para verse en toda la web */}
-      <div className="w-full bg-red-600 text-white overflow-hidden py-2">
-        <div className="flex justify-center items-center gap-4 text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase">
-          <span className="hidden sm:inline"></span>
-          <p>BAJO PERFIL WEB INAUGURACION - Hasta 20% OFF</p>
-          <span className="hidden sm:inline"></span>
+      {/* BARRA SUPERIOR ANIMADA (TICKER) */}
+      <div className="w-full bg-red-600 text-white overflow-hidden flex items-center h-8 sm:h-10 relative">
+        <div className="animate-ticker flex">
+          {/* Renderizamos las repeticiones DOS veces para el loop infinito */}
+          <div className="flex">{repeticiones}</div>
+          <div className="flex">{repeticiones}</div>
         </div>
       </div>
+      
       <Navbar />
       <CartDrawer /> 
       
@@ -69,7 +85,6 @@ export default function App() {
               </section>
 
               {/* Footer */}
-              {/* FOOTER */}
               <footer className="w-full bg-stone-950 py-10 px-6 border-t border-stone-800">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                   <p className="text-[10px] tracking-widest uppercase text-stone-500">
@@ -82,7 +97,6 @@ export default function App() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-stone-500 hover:text-white transition-colors cursor-pointer group"
                   >
-                    {/* SVG Nativo de Instagram (reemplaza a Lucide) */}
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="16" 

@@ -62,7 +62,7 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', verificarToken, async (req, res) => {
   try {
     // NUEVO: Agregamos "categoria" a los datos que recibimos
-    const { name, price, precioOriginal, description, categoria, images, sizes } = req.body;
+    const { name, price, priceOriginal, description, categoria, images, sizes } = req.body;
     
     const sizeData = sizes.map(sizeName => ({ name: sizeName, stock: 10 }));
     const imageData = images.map(imgUrl => ({ url: imgUrl }));
@@ -71,7 +71,7 @@ app.post('/api/products', verificarToken, async (req, res) => {
       data: {
         name, 
         price: Number(price), 
-        precioOriginal: precioOriginal ? Number(precioOriginal) : null,
+        priceOriginal: priceOriginal ? Number(priceOriginal) : null,
         description,
         categoria: categoria || 'Remera', // NUEVO: Guardamos la categoría (con valor por defecto)
         sizes: { create: sizeData },
@@ -93,7 +93,7 @@ app.post('/api/products', verificarToken, async (req, res) => {
 app.put('/api/products/:id', verificarToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, precioOriginal, description, categoria, images, sizes } = req.body;
+    const { name, price, priceOriginal, description, categoria, images, sizes } = req.body;
     
     // Preparamos los datos igual que en el POST
     const sizeData = sizes.map(sizeName => ({ name: sizeName, stock: 10 }));
@@ -105,7 +105,7 @@ app.put('/api/products/:id', verificarToken, async (req, res) => {
       data: {
         name, 
         price: Number(price), 
-        precioOriginal: precioOriginal ? Number(precioOriginal) : null, 
+        priceOriginal: priceOriginal ? Number(priceOriginal) : null, 
         description,
         categoria: categoria || 'Remera',
         // El truco: borramos las relaciones viejas y creamos las nuevas en un solo paso
@@ -144,57 +144,59 @@ app.post('/api/shipping/quote', async (req, res) => {
   try {
     const { codigoPostalDestino } = req.body;
     
-    if (!codigoPostalDestino) {
+    if (!codigoPostalDestino || codigoPostalDestino.length < 4) {
       return res.status(400).json({ error: "El código postal es requerido" });
     }
 
-    // El peso y dimensiones de un paquete típico tuyo (ej: 1 remera)
-    // Zipnova suele pedirlo en gramos y centímetros
-    const payloadEnvio = {
-      origin_zipcode: "7600", // Tu CP en Mar del Plata
-      destination_zipcode: codigoPostalDestino.toString(),
-      weight: 400, // 400 gramos
-      length: 25,  // Largo del paquete en cm
-      width: 20,   // Ancho del paquete en cm
-      height: 5    // Alto del paquete en cm
-    };
+    const cp = parseInt(codigoPostalDestino, 10);
+    
+    let precioClasico = 0;
+    let diasClasico = "";
 
-    // Hacemos la consulta oficial a la API de Zipnova
-    const response = await fetch('https://api.zipnova.com.ar/v2/quotes', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        // Inyectamos el Token secreto que guardaste en Render
-        'Authorization': `Bearer ${process.env.ZIPNOVA_API_KEY}` 
-      },
-      body: JSON.stringify(payloadEnvio)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Error en la API de Zipnova");
+    // 1. LÓGICA DE ZONAS (Valores estimativos, podés actualizarlos cuando el correo suba los precios)
+    if (cp === 7600) {
+      // ZONA LOCAL: Mar del Plata
+      precioClasico = 3500;
+      diasClasico = "1 a 2";
+    } 
+    else if ((cp >= 1000 && cp <= 3600) || (cp >= 6000 && cp <= 7620)) {
+      // ZONA REGIONAL: CABA y Provincia de Buenos Aires
+      precioClasico = 5500;
+      diasClasico = "3 a 5";
+    } 
+    else {
+      // ZONA NACIONAL: Resto del país
+      precioClasico = 7500;
+      diasClasico = "4 a 7";
     }
 
-    // Zipnova devuelve un array gigante con todas las opciones. 
-    // Lo "limpiamos" para mandarle a React solo lo que le importa:
-    const cotizacionesFormateadas = data.rates
-      .filter(tarifa => tarifa.carrier_name.toLowerCase().includes('correo argentino'))
-      .map((tarifa, index) => ({
-        id: index,
-        correo: tarifa.carrier_name, 
-        servicio: tarifa.service_name, 
-        precio: tarifa.price,
-        dias_estimados: `${tarifa.estimated_days} días hábiles`
-      }));
+    // 2. ARMAMOS LA RESPUESTA QUE ESPERA TU FRONTEND
+    const cotizacionesFormateadas = [
+      {
+        id: 1,
+        correo: "Correo Argentino",
+        servicio: "Clásico a Domicilio",
+        precio: precioClasico,
+        dias_estimados: `${diasClasico} días hábiles`
+      },
+      {
+        id: 2,
+        correo: "Correo Argentino",
+        servicio: "Retiro en Sucursal",
+        // El envío a sucursal suele ser un poco más barato
+        precio: precioClasico - 1200, 
+        dias_estimados: `${diasClasico} días hábiles`
+      }
+    ];
 
+    // Devolvemos la lista limpia, sin depender de ningún servidor externo
     res.json(cotizacionesFormateadas);
 
- } catch (error) {
-    console.error("Error cotizando con Zipnova:", error);
-    res.status(500).json({ error: "Error al calcular el envío" });
+  } catch (error) {
+    console.error("Error calculando el tarifario:", error);
+    res.status(500).json({ error: "Error interno al calcular el envío" });
   }
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
