@@ -1,8 +1,11 @@
 // Forzando el despliegue en Cloudflare
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, Lock, UploadCloud, X } from 'lucide-react';
+import { Trash2, Plus, Lock, UploadCloud, X, Edit } from 'lucide-react';
 
-const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+// === CONFIGURACIÓN DE LISTAS ===
+const CATEGORIAS = ['Remera', 'Abrigo', 'Pantalon', 'Calzado'];
+const TALLES_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const TALLES_CALZADO = ['38', '39', '40', '41', '42', '43', '44', '45'];
 
 // === CONFIGURACIÓN DE CLOUDINARY ===
 const CLOUD_NAME = 'jmwfuhnl';
@@ -17,22 +20,22 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false); 
   
+  // NUEVO: Estado para saber si estamos editando (guarda el ID del producto)
+  const [editingId, setEditingId] = useState(null);
+
   const [formData, setFormData] = useState({
-    name: '', price: '', description: '', images: [], sizes: []
+    name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: []
   });
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
-    
     try {
-      // CORRECCIÓN: Ruta limpia a /login
       const response = await fetch('https://bajo-perfil-backend.onrender.com/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
-      
       const data = await response.json();
       if (response.ok) {
         setToken(data.token);
@@ -52,7 +55,6 @@ export default function AdminPanel() {
 
   const fetchProducts = async () => {
     try {
-      // CORRECCIÓN: Ruta limpia a /products
       const response = await fetch('https://bajo-perfil-backend.onrender.com/api/products');
       const data = await response.json();
       setProducts(data);
@@ -65,6 +67,14 @@ export default function AdminPanel() {
   useEffect(() => {
     if (token) fetchProducts();
   }, [token]);
+
+  const handleCategoriaChange = (e) => {
+    setFormData({
+      ...formData,
+      categoria: e.target.value,
+      sizes: [] 
+    });
+  };
 
   const toggleSize = (sizeName) => {
     setFormData(prev => {
@@ -80,7 +90,6 @@ export default function AdminPanel() {
     if (!file) return;
 
     setIsUploading(true);
-    
     const data = new FormData();
     data.append('file', file);
     data.append('upload_preset', UPLOAD_PRESET);
@@ -91,7 +100,6 @@ export default function AdminPanel() {
         body: data
       });
       const fileData = await response.json();
-      
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, fileData.secure_url]
@@ -111,15 +119,41 @@ export default function AdminPanel() {
     }));
   };
 
+  // NUEVO: Función para cargar los datos de un producto en el formulario
+  const handleEditClick = (product) => {
+    setEditingId(product.id);
+    setFormData({
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      categoria: product.categoria || 'Remera',
+      images: product.images.map(img => img.url), // Extraemos solo los links
+      sizes: product.sizes.map(s => s.name)       // Extraemos solo los nombres de los talles
+    });
+    // Hacemos scroll suave hacia arriba para que el admin vea el formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // NUEVO: Función para cancelar la edición y limpiar el formulario
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     if (formData.sizes.length === 0) return alert("Seleccioná al menos un talle.");
     if (formData.images.length === 0) return alert("Subí al menos una foto.");
 
+    // NUEVO: Decidimos si usamos POST (crear) o PUT (actualizar)
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId 
+      ? `https://bajo-perfil-backend.onrender.com/api/products/${editingId}`
+      : 'https://bajo-perfil-backend.onrender.com/api/products';
+
     try {
-      // CORRECCIÓN: Ruta limpia a /products
-      const response = await fetch('https://bajo-perfil-backend.onrender.com/api/products', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: method,
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -132,17 +166,17 @@ export default function AdminPanel() {
         return handleLogout();
       }
 
-      setFormData({ name: '', price: '', description: '', images: [], sizes: [] });
+      setFormData({ name: '', price: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+      setEditingId(null); // Limpiamos el estado de edición
       fetchProducts();
     } catch (error) {
-      console.error('Error al crear producto:', error);
+      console.error('Error al guardar producto:', error);
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este producto?")) return;
     try {
-      // CORRECCIÓN: Ruta limpia a /products/${id} usando backticks
       const response = await fetch(`https://bajo-perfil-backend.onrender.com/api/products/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -160,6 +194,7 @@ export default function AdminPanel() {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-100 p-4">
+        {/* ... (Tu formulario de login se mantiene intacto) ... */}
         <div className="max-w-md w-full bg-white p-8 shadow-xl border border-stone-200">
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 bg-stone-900 text-white flex items-center justify-center mb-4 rounded-full">
@@ -186,10 +221,27 @@ export default function AdminPanel() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-1">
-          <h2 className="text-xl font-bold text-stone-900 mb-6 uppercase tracking-widest">Nuevo Ingreso</h2>
+          {/* NUEVO: Cambiamos el título dinámicamente */}
+          <h2 className="text-xl font-bold text-stone-900 mb-6 uppercase tracking-widest">
+            {editingId ? 'Editando Prenda' : 'Nuevo Ingreso'}
+          </h2>
           <form onSubmit={handleSubmit} className="bg-stone-50 p-6 border border-stone-200 flex flex-col gap-4">
             
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Nombre</label><input type="text" required className="w-full p-3 border border-stone-300 bg-white" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
+            
+            <div>
+              <label className="text-xs font-bold text-stone-500 uppercase block mb-2">Categoría</label>
+              <select 
+                className="w-full p-3 border border-stone-300 bg-white focus:outline-none focus:border-stone-900 cursor-pointer text-sm"
+                value={formData.categoria}
+                onChange={handleCategoriaChange}
+              >
+                {CATEGORIAS.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Precio ($)</label><input type="number" required className="w-full p-3 border border-stone-300 bg-white" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} /></div>
             <div><label className="text-xs font-bold text-stone-500 uppercase block mb-2">Descripción</label><textarea required rows="3" className="w-full p-3 border border-stone-300 bg-white resize-none" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} /></div>
 
@@ -227,15 +279,35 @@ export default function AdminPanel() {
             <div>
               <label className="text-xs font-bold text-stone-500 uppercase block mb-2">Talles</label>
               <div className="flex flex-wrap gap-2">
-                {AVAILABLE_SIZES.map(size => (
-                  <button key={size} type="button" onClick={() => toggleSize(size)} className={`w-10 h-10 border text-xs font-bold cursor-pointer ${formData.sizes.includes(size) ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-500 border-stone-300'}`}>{size}</button>
+                {(formData.categoria === 'Calzado' ? TALLES_CALZADO : TALLES_ROPA).map(size => (
+                  <button 
+                    key={size} 
+                    type="button" 
+                    onClick={() => toggleSize(size)} 
+                    className={`min-w-[2.5rem] h-10 px-2 border text-xs font-bold cursor-pointer transition-colors ${formData.sizes.includes(size) ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-500 border-stone-300 hover:border-stone-900'}`}
+                  >
+                    {size}
+                  </button>
                 ))}
               </div>
+              {formData.sizes.length === 0 && (
+                <p className="text-[10px] text-red-500 mt-2 uppercase tracking-wide">* Seleccioná al menos un talle</p>
+              )}
             </div>
 
-            <button type="submit" disabled={isUploading} className="mt-4 w-full h-12 bg-stone-900 text-white text-sm font-bold uppercase hover:bg-stone-800 disabled:bg-stone-400">
-              <Plus className="w-4 h-4 inline mr-2" /> Publicar Producto
-            </button>
+            <div className="mt-4 flex flex-col gap-2">
+              <button type="submit" disabled={isUploading} className="w-full h-12 bg-stone-900 text-white text-sm font-bold uppercase hover:bg-stone-800 disabled:bg-stone-400">
+                {/* NUEVO: Cambiamos el texto del botón dinámicamente */}
+                {editingId ? 'Actualizar Producto' : <><Plus className="w-4 h-4 inline mr-2" /> Publicar Producto</>}
+              </button>
+              
+              {/* NUEVO: Botón para cancelar la edición */}
+              {editingId && (
+                <button type="button" onClick={handleCancelEdit} className="w-full h-12 bg-white border border-stone-300 text-stone-600 text-sm font-bold uppercase hover:bg-stone-50">
+                  Cancelar Edición
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -244,16 +316,36 @@ export default function AdminPanel() {
           {loading ? <p>Cargando...</p> : (
             <div className="bg-white border border-stone-200 divide-y divide-stone-200">
               {products.length === 0 ? <p className="p-6">No hay productos.</p> : products.map(product => (
-                <div key={product.id} className="flex items-center justify-between p-4">
+                <div key={product.id} className="flex items-center justify-between p-4 transition-colors hover:bg-stone-50">
                   <div className="flex items-center gap-4">
                     <img src={product.images && product.images[0] ? product.images[0].url : ''} alt={product.name} className="w-16 h-20 object-cover bg-stone-100 border" />
                     <div>
+                      <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mb-1">{product.categoria || 'Sin categoría'}</p>
                       <h3 className="font-bold text-sm uppercase">{product.name}</h3>
                       <p className="text-xs mb-2">${product.price.toLocaleString('es-AR')}</p>
-                      <div className="flex gap-1">{product.sizes?.map(s => <span key={s.id} className="px-2 py-1 bg-stone-200 text-[10px]">{s.name}</span>)}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {product.sizes?.map(s => <span key={s.id} className="px-2 py-1 bg-stone-200 text-[10px]">{s.name}</span>)}
+                      </div>
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(product.id)} className="p-2 text-stone-400 hover:text-red-500"><Trash2 className="w-5 h-5" /></button>
+                  
+                  {/* NUEVO: Botón de editar junto al de eliminar */}
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => handleEditClick(product)} 
+                      className="p-2 text-stone-400 hover:text-stone-900 transition-colors"
+                      title="Editar producto"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(product.id)} 
+                      className="p-2 text-stone-400 hover:text-red-500 transition-colors"
+                      title="Eliminar producto"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

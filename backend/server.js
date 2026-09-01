@@ -88,6 +88,41 @@ app.post('/api/products', verificarToken, async (req, res) => {
   }
 });
 
+// ACTUALIZAR: Privada (Requiere verificarToken)
+app.put('/api/products/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, description, categoria, images, sizes } = req.body;
+    
+    // Preparamos los datos igual que en el POST
+    const sizeData = sizes.map(sizeName => ({ name: sizeName, stock: 10 }));
+    const imageData = images.map(imgUrl => ({ url: imgUrl }));
+    
+    // Actualizamos el producto en Prisma
+    const updatedProduct = await prisma.product.update({
+      where: { id: Number(id) },
+      data: {
+        name, 
+        price: Number(price), 
+        description,
+        categoria: categoria || 'Remera',
+        // El truco: borramos las relaciones viejas y creamos las nuevas en un solo paso
+        sizes: { deleteMany: {}, create: sizeData },
+        images: { deleteMany: {}, create: imageData }
+      },
+      include: { 
+        sizes: true,
+        images: true 
+      }
+    });
+    
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error actualizando producto" });
+  }
+});
+
 // ELIMINAR: Privada (Requiere verificarToken)
 app.delete('/api/products/:id', verificarToken, async (req, res) => {
   try {
