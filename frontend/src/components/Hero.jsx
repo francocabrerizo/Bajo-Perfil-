@@ -14,7 +14,7 @@ export default function Hero() {
       </video>
 
       {/* Capa de Legibilidad (Overlay) */}
-      <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px] -z-10"></div>
+      <div className="absolute inset-0 bg-stone-950/60 -z-10"></div>
       
       <div className="relative max-w-3xl mx-auto flex flex-col items-center z-10">
         <span className="text-xs font-semibold tracking-[0.4em] text-white uppercase mb-4 animate-fade-in">

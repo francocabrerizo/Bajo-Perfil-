@@ -58,9 +58,11 @@ app.get('/api/products', async (req, res) => {
 });
 
 // CREAR: Privada (Requiere verificarToken)
+// CREAR: Privada (Requiere verificarToken)
 app.post('/api/products', verificarToken, async (req, res) => {
   try {
-    const { name, price, description, images, sizes } = req.body;
+    // NUEVO: Agregamos "categoria" a los datos que recibimos
+    const { name, price, description, categoria, images, sizes } = req.body;
     
     const sizeData = sizes.map(sizeName => ({ name: sizeName, stock: 10 }));
     const imageData = images.map(imgUrl => ({ url: imgUrl }));
@@ -70,6 +72,7 @@ app.post('/api/products', verificarToken, async (req, res) => {
         name, 
         price: Number(price), 
         description,
+        categoria: categoria || 'Remera', // NUEVO: Guardamos la categoría (con valor por defecto)
         sizes: { create: sizeData },
         images: { create: imageData }
       },

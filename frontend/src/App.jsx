@@ -34,8 +34,10 @@ export default function App() {
                      Nosotros
                   </h2>
                 <p className="max-w-2xl text-stone-400 text-sm md:text-base font-light leading-relaxed">
-                   Somos Bajo Perfil. Una marca pensada para quienes buscan destacar sin gritar. Diseñamos
-                   prendas con estilo minimalista, priorizando la calidad y los detalles.
+                   Desde Mar del Plata, construimos Bajo Perfil paso a paso. Detrás 
+                   de cada prenda, cada viaje, cada elección y cada entrega hay horas 
+                   de trabajo, dedicación y esfuerzo. 
+                   Nada fue dado: todo lo que somos lo construimos con nuestras propias manos.
                 </p>
               </section>
 

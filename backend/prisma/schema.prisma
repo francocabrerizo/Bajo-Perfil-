@@ -12,6 +12,7 @@ model Product {
   price       Float
   description String
   images      Image[]
+  categoria String?
   createdAt   DateTime @default(now())
   sizes       Size[]   
 }

@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ProductModal from './ProductModal';
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // NUEVO: Estado para la categoría activa
+  const [activeCategory, setActiveCategory] = useState('Todos');
 
   useEffect(() => {
-    // CORRECCIÓN: Ruta limpia apuntando a /products
     fetch('https://bajo-perfil-backend.onrender.com/api/products')
       .then((response) => response.json())
       .then((data) => {
@@ -20,18 +22,56 @@ export default function ProductGrid() {
       });
   }, []);
 
+  // NUEVO: Extraer categorías únicas de los productos para armar los botones
+  const categories = useMemo(() => {
+    const allCategories = products.map(p => p.categoria || p.category || 'Otros');
+    const uniqueCategories = [...new Set(allCategories)].filter(c => c !== 'Otros');
+    return ['Todos', ...uniqueCategories];
+  }, [products]);
+
+  // NUEVO: Filtrar los productos según el botón clickeado
+  const filteredProducts = useMemo(() => {
+    if (activeCategory === 'Todos') return products;
+    return products.filter(p => (p.categoria || p.category) === activeCategory);
+  }, [products, activeCategory]);
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <p className="text-stone-500 text-lg">Cargando catálogo...</p>
+      <div className="w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 mt-8">
+          {[...Array(6)].map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-        {products.map((product) => (
+    <div className="w-full flex flex-col items-center">
+      
+      {/* NUEVO: Barra de Filtros Minimalista */}
+      {categories.length > 1 && (
+        <div className="flex gap-8 mb-12 overflow-x-auto w-full justify-start md:justify-center px-4 pb-2 scrollbar-hide">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`text-xs font-bold tracking-widest uppercase transition-all duration-300 whitespace-nowrap pb-1 border-b-2 ${
+                activeCategory === cat 
+                  ? 'text-stone-900 border-stone-900' 
+                  : 'text-stone-400 border-transparent hover:text-stone-600'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Grilla de Productos (Ahora usa filteredProducts) */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+        {filteredProducts.map((product) => (
           <ProductCard 
             key={product.id} 
             product={product} 
@@ -40,17 +80,18 @@ export default function ProductGrid() {
         ))}
       </div>
 
+      {/* Modal de Producto */}
       {selectedProduct && (
         <ProductModal 
           product={selectedProduct} 
           onClose={() => setSelectedProduct(null)} 
         />
       )}
-    </>
+    </div>
   );
 }
 
-// Componente ProductCard en el mismo archivo
+// COMPONENTE TARJETA REAL
 function ProductCard({ product, onClick }) {
   const nombre = product.nombre || product.name;
   const precio = product.precio || product.price;
@@ -94,7 +135,7 @@ function ProductCard({ product, onClick }) {
           <span className="text-[10px] tracking-wider text-stone-400 uppercase block mb-1.5">Talles disponibles:</span>
           <div className="flex gap-1.5">
             {talles.map((talle, index) => (
-            <span key={index}>{talle.name || talle}</span>
+            <span key={index} className="text-xs text-stone-600">{talle.name || talle}</span>
             ))} 
           </div>
         </div>
@@ -106,3 +147,39 @@ function ProductCard({ product, onClick }) {
     </div>
   );
 }
+
+// COMPONENTE ESQUELETO MEJORADO (Imita la tarjeta real)
+const ProductSkeleton = () => {
+  return (
+    <div className="flex flex-col bg-white border border-stone-100 overflow-hidden animate-pulse">
+      {/* Imagen */}
+      <div className="w-full aspect-[3/4] bg-stone-200"></div>
+      
+      <div className="flex flex-col flex-grow p-5 text-left">
+        {/* Título y precio */}
+        <div className="flex items-start justify-between mb-2">
+          <div className="h-5 w-1/2 bg-stone-200 rounded-sm"></div>
+          <div className="h-5 w-1/4 bg-stone-200 rounded-sm"></div>
+        </div>
+
+        {/* Descripción */}
+        <div className="flex flex-col gap-1.5 mb-4">
+          <div className="h-3 w-full bg-stone-200 rounded-sm"></div>
+          <div className="h-3 w-4/5 bg-stone-200 rounded-sm"></div>
+        </div>
+
+        {/* Talles */}
+        <div className="mb-6">
+          <div className="h-2 w-1/3 bg-stone-200 rounded-sm mb-2"></div>
+          <div className="flex gap-1.5">
+            <div className="h-4 w-6 bg-stone-200 rounded-sm"></div>
+            <div className="h-4 w-6 bg-stone-200 rounded-sm"></div>
+          </div>
+        </div>
+
+        {/* Botón */}
+        <div className="mt-auto w-full py-3 h-[40px] bg-stone-200 rounded-sm"></div>
+      </div>
+    </div>
+  );
+};
