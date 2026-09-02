@@ -114,3 +114,5 @@ export default function ProductCard({ product, onClick }) {
     </div>
   );
 }
+
+// old

@@ -14,16 +14,26 @@ export default function ProductModal({ product, onClose }) {
 
   const nombre = product.nombre || product.name;
   const precio = product.precio || product.price;
-  const precioOriginal = product.precioOriginal || product.originalPrice;
+  const precioOriginal = product.priceOriginal || product.precioOriginal || product.originalPrice;
   const descripcion = product.descripcion || product.description;
-  const talles = product.talles || product.sizes || [];
-  const categoria = product.categoria || product.category || 'Catálogo';
+  const tallesArray = product.talles || product.sizes || [];
+  const categoria = product.categoria || product.category || 'Remera';
 
-  const refCode = `REF:BP-${(product.id || 0).toString().padStart(3, '0')}`;
+  const isCalzado = categoria.toLowerCase() === 'calzado';
+  const tallesMaestros = isCalzado 
+    ? ['38', '39', '40', '41', '42', '43', '44', '45']
+    : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const tallesDisponibles = tallesArray.map(t => typeof t === 'string' ? t : t.name);
 
   const imagenes = (product.images && product.images.length > 0) 
     ? product.images.map(img => img.url) 
     : [product.imagen || product.image].filter(Boolean);
+
+  let porcentajeDescuento = 0;
+  if (precioOriginal && precioOriginal > precio) {
+    porcentajeDescuento = Math.round(((precioOriginal - precio) / precioOriginal) * 100);
+  }
 
   const handleAddToCart = () => {
     addItem(product, selectedSize, quantity);
@@ -31,6 +41,16 @@ export default function ProductModal({ product, onClose }) {
       style: { background: '#1c1917', color: '#fafaf9', borderRadius: '100px', padding: '12px 24px', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' },
     });
     onClose();
+  };
+
+  const handleBuyNow = () => {
+    const numeroWhatsApp = "5492246488161";
+    const total = precio * quantity;
+    const talleElegido = selectedSize || (tallesDisponibles.length === 0 ? 'Único' : 'No especificado');
+    
+    const mensaje = `¡Hola! Quiero comprar ahora:%0A%0A🛍️ *${nombre}*%0A📏 Talle: ${talleElegido}%0A📦 Cantidad: ${quantity}%0A💰 Total: $${total.toLocaleString('es-AR')}%0A%0A¿Me pasás los datos para avanzar con el pago?`;
+    
+    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensaje}`, '_blank');
   };
 
   const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -49,19 +69,17 @@ export default function ProductModal({ product, onClose }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-stone-900/80 backdrop-blur-sm p-0 md:p-6 transition-all">
       
-      {/* Contenedor Principal: Bordes curvos (rounded-3xl) haciendo juego con las tarjetas */}
       <div className="relative flex flex-col md:flex-row w-full h-[92vh] md:h-auto md:max-w-5xl md:max-h-[85vh] bg-white rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl">
         
-        {/* Botón Cerrar (X) redondeado */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2.5 text-stone-900 bg-white/70 backdrop-blur-md border border-stone-200/50 rounded-full shadow-sm hover:bg-stone-900 hover:text-white transition-all duration-300 cursor-pointer"
+          className="absolute top-4 right-4 z-20 p-2 text-stone-500 bg-white/70 backdrop-blur-md rounded-full shadow-sm hover:bg-stone-900 hover:text-white transition-all duration-300 cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* MITAD IZQUIERDA: Imagen y Carrusel */}
-        <div className="w-full h-[45%] md:h-auto md:w-1/2 bg-[#F9F9F9] relative flex items-center justify-center group">
+        {/* MITAD IZQUIERDA: Imagen */}
+        <div className="w-full h-[45%] md:h-auto md:w-1/2 bg-[#F5F5F5] relative flex items-center justify-center group">
           <img 
             src={imagenes[currentImageIndex]} 
             alt={`${nombre} - vista ${currentImageIndex + 1}`} 
@@ -70,20 +88,13 @@ export default function ProductModal({ product, onClose }) {
 
           {imagenes.length > 1 && ChevronLeft && ChevronRight && (
             <>
-              <button 
-                onClick={prevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10"
-              >
+              <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <button 
-                onClick={nextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10"
-              >
+              <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
                 <ChevronRight className="w-6 h-6" />
               </button>
               
-              {/* Indicadores formato píldora */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
                 {imagenes.map((_, idx) => (
                   <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-400'}`} />
@@ -93,86 +104,113 @@ export default function ProductModal({ product, onClose }) {
           )}
         </div>
 
-        {/* MITAD DERECHA: Detalles de la prenda */}
+        {/* MITAD DERECHA: Detalles */}
         <div className="w-full md:w-1/2 p-6 md:p-10 overflow-y-auto bg-white flex flex-col">
           
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-[10px] text-stone-400 tracking-[0.15em] uppercase font-semibold">{refCode}</span>
-            <span className="text-[10px] text-stone-500 tracking-[0.15em] uppercase font-medium bg-stone-50 px-3 py-1 rounded-full border border-stone-100">{categoria}</span>
-          </div>
-
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 mb-2 leading-tight">
+          <h2 className="text-2xl md:text-[30px] font-medium tracking-tight text-stone-900 mb-4 uppercase">
             {nombre}
-          </h2>
+          </h2> 
           
-          <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-stone-50">
-            <span className="text-2xl md:text-3xl font-black text-stone-900">
-              ${Number(precio).toLocaleString('es-AR')}
-            </span>
-            {precioOriginal && (
-              <span className="text-sm md:text-base text-stone-400 line-through font-medium">
-                ${Number(precioOriginal).toLocaleString('es-AR')}
-              </span>
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <span className="text-xl md:text-2xl font-semibold text-[#D32F2F]">
+                  ${Number(precio).toLocaleString('es-AR')} ARS
+                </span>
+                {precioOriginal && (
+                  <span className="text-sm md:text-base text-stone-400 line-through">
+                    ${Number(precioOriginal).toLocaleString('es-AR')} ARS
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#000000] font-medium opacity-80 mt-1">
+               BAJO PERFIL // 2K26.
+              </p>
+            </div>
+
+            {porcentajeDescuento > 0 && (
+              <div className="bg-[#D32F2F] text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider">
+                Ahorra {porcentajeDescuento}%
+              </div>
             )}
           </div>
 
-          {/* Talles en botones redondos (píldoras) */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">
-                Talles
-              </span>
-            </div>
+          <div className="mb-6 border-t border-stone-100 pt-6">
+            <p className="text-sm text-stone-900 font-medium mb-3">
+              Talles: <span className="font-bold">{selectedSize || ''}</span>
+            </p>
             
             <div className="flex flex-wrap gap-2.5">
-              {talles.map((talle, index) => {
-                const nombreTalle = talle.name || talle;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedSize(nombreTalle)}
-                    className={`min-w-[3rem] px-4 py-2.5 flex items-center justify-center rounded-full text-sm font-bold transition-all duration-200 cursor-pointer border ${
-                      selectedSize === nombreTalle 
-                        ? 'border-stone-900 bg-stone-900 text-white shadow-md' 
-                        : 'border-stone-200 bg-white text-stone-600 hover:border-stone-900 hover:text-stone-900'
-                    }`}
-                  >
-                    {nombreTalle}
-                  </button>
-                );
-              })}
-              {talles.length === 0 && (
-                <span className="text-sm text-stone-500 font-medium py-2">Único</span>
+              {tallesDisponibles.length > 0 ? (
+                tallesMaestros.map((talle) => {
+                  const hayStock = tallesDisponibles.includes(talle);
+                  const isSelected = selectedSize === talle;
+
+                  return (
+                    <button
+                      key={talle}
+                      disabled={!hayStock}
+                      onClick={() => setSelectedSize(talle)}
+                      className={`w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm transition-all duration-200
+                        ${!hayStock 
+                          ? 'border border-stone-200 text-stone-300 bg-stone-50 cursor-not-allowed line-through' 
+                          : isSelected 
+                            ? 'border-2 border-stone-900 text-stone-900 font-bold bg-white' 
+                            : 'border border-stone-300 text-stone-600 hover:border-stone-900 hover:text-stone-900 bg-white cursor-pointer'
+                        }`}
+                    >
+                      {talle}
+                    </button>
+                  );
+                })
+              ) : (
+                <span className="text-sm text-stone-500 font-medium py-2">Talle Único</span>
               )}
             </div>
+            
+            <p className="text-[11px] text-stone-500 mt-4 leading-relaxed">
+              <span className="font-bold text-stone-900">ATENCIÓN:</span> Chequear la tabla de talle porque las medidas pueden variar inclusive en un mismo producto.
+            </p>
           </div>
 
-          {/* Controles de cantidad y botón Agregar al Carrito */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="flex items-center justify-between bg-white border border-stone-200 rounded-full h-14 w-full sm:w-36 px-2">
-              <button onClick={decreaseQuantity} className="w-10 h-10 flex items-center justify-center text-stone-600 hover:bg-stone-100 rounded-full transition-all cursor-pointer font-medium">-</button>
-              <div className="flex-1 text-center font-bold text-stone-900">{quantity}</div>
-              <button onClick={increaseQuantity} className="w-10 h-10 flex items-center justify-center text-stone-600 hover:bg-stone-100 rounded-full transition-all cursor-pointer font-medium">+</button>
+          <div className="mb-6">
+            <p className="text-sm text-stone-900 font-medium mb-3">Cantidad:</p>
+            
+            <div className="flex items-center justify-between border border-stone-300 rounded-full h-12 w-32 px-2 bg-white mb-5">
+              <button onClick={decreaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors font-medium cursor-pointer">-</button>
+              <div className="flex-1 text-center font-bold text-stone-900 text-sm">{quantity}</div>
+              <button onClick={increaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors font-medium cursor-pointer">+</button>
             </div>
             
-            <button 
+            <div className="flex flex-col gap-3">
+              <button 
                 onClick={handleAddToCart}
-                className={`flex-1 h-14 flex items-center justify-center text-xs font-bold tracking-[0.15em] uppercase rounded-full transition-all duration-300 ${
-                 selectedSize || talles.length === 0
-                  ? 'bg-stone-900 text-white hover:bg-stone-800 shadow-lg shadow-stone-900/10 hover:-translate-y-0.5 cursor-pointer' 
-                  : 'bg-stone-50 text-stone-400 cursor-not-allowed border border-stone-200'
+                disabled={!selectedSize && tallesDisponibles.length > 0}
+                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-all duration-300 ${
+                  selectedSize || tallesDisponibles.length === 0
+                    ? 'bg-black text-white hover:bg-stone-800 shadow-md cursor-pointer' 
+                    : 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
                 }`}
-                 disabled={!selectedSize && talles.length > 0}
-            >   
-                {selectedSize || talles.length === 0 ? 'Agregar al carrito' : 'Seleccioná un talle'}
-            </button>
+              >   
+                {selectedSize || tallesDisponibles.length === 0 ? 'Agregar al carrito' : 'Seleccioná un talle'}
+              </button>
+
+              <button 
+                onClick={handleBuyNow}
+                disabled={!selectedSize && tallesDisponibles.length > 0}
+                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-all duration-300 border-2 ${
+                  selectedSize || tallesDisponibles.length === 0
+                    ? 'border-black bg-black text-white hover:bg-white hover:text-black shadow-md cursor-pointer' 
+                    : 'border-stone-200 bg-stone-50 text-stone-400 cursor-not-allowed'
+                }`}
+              >
+                Comprar Ahora
+              </button>
+            </div>
           </div>
 
-          <div className="mt-auto pt-6 border-t border-stone-50">
-            <div className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-3">
-              Descripción
-            </div>
-            <p className="text-stone-600 text-sm leading-relaxed font-medium">
+          <div className="mt-auto pt-4 border-t border-stone-100">
+            <p className="text-stone-600 text-xs leading-relaxed font-medium">
               {descripcion}
             </p>
           </div>
