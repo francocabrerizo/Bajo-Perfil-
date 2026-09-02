@@ -48,9 +48,13 @@ export default function ProductModal({ product, onClose }) {
     const total = precio * quantity;
     const talleElegido = selectedSize || (tallesDisponibles.length === 0 ? 'Único' : 'No especificado');
     
-    const mensaje = `¡Hola! Quiero comprar ahora:%0A%0A🛍️ *${nombre}*%0A📏 Talle: ${talleElegido}%0A📦 Cantidad: ${quantity}%0A💰 Total: $${total.toLocaleString('es-AR')}%0A%0A¿Me pasás los datos para avanzar con el pago?`;
-    
-    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensaje}`, '_blank');
+    let message = "¡Hola Bajo Perfil! Quiero confirmar mi pedido:\n\n";
+    message += `- ${quantity}x ${nombre} (Talle: ${talleElegido}) - $${total.toLocaleString('es-AR')}\n`;
+    message += `\nEnvío: A coordinar`;
+    message += `\n*TOTAL FINAL: $${total.toLocaleString('es-AR')}*\n\n`;
+    message += `¡Muchas gracias!`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${numeroWhatsApp}?text=${encodedMessage}`, '_blank');
   };
 
   const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -67,13 +71,15 @@ export default function ProductModal({ product, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-stone-900/80 backdrop-blur-sm p-0 md:p-6 transition-all">
+    // OPTIMIZACIÓN: Se cambió transition-all por transition-opacity y se sacó animación innecesaria
+    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-stone-900/80 backdrop-blur-sm p-0 md:p-6 transition-opacity duration-300">
       
-      <div className="relative flex flex-col md:flex-row w-full h-[92vh] md:h-auto md:max-w-5xl md:max-h-[85vh] bg-white rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl">
+      {/* OPTIMIZACIÓN: Agregado transform-gpu para aceleración por hardware */}
+      <div className="relative flex flex-col md:flex-row w-full h-[92vh] md:h-auto md:max-w-5xl md:max-h-[85vh] bg-white rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl transform-gpu">
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 text-stone-500 bg-white/70 backdrop-blur-md rounded-full shadow-sm hover:bg-stone-900 hover:text-white transition-all duration-300 cursor-pointer"
+          className="absolute top-4 right-4 z-20 p-2 text-stone-500 bg-white/70 backdrop-blur-md rounded-full shadow-sm hover:bg-stone-900 hover:text-white transition-colors duration-200 cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -83,21 +89,21 @@ export default function ProductModal({ product, onClose }) {
           <img 
             src={imagenes[currentImageIndex]} 
             alt={`${nombre} - vista ${currentImageIndex + 1}`} 
-            className="w-full h-full object-cover md:object-contain transition-transform duration-700"
+            className="w-full h-full object-cover md:object-contain transition-transform duration-500"
           />
 
           {imagenes.length > 1 && ChevronLeft && ChevronRight && (
             <>
-              <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
+              <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-colors duration-200 cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
+              <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm text-stone-900 hover:bg-stone-900 hover:text-white transition-colors duration-200 cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10">
                 <ChevronRight className="w-6 h-6" />
               </button>
               
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
                 {imagenes.map((_, idx) => (
-                  <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-400'}`} />
+                  <div key={idx} className={`h-1.5 rounded-full transition-colors duration-300 ${idx === currentImageIndex ? 'w-5 bg-stone-900' : 'w-1.5 bg-stone-400'}`} />
                 ))}
               </div>
             </>
@@ -124,7 +130,7 @@ export default function ProductModal({ product, onClose }) {
                 )}
               </div>
               <p className="text-xs text-[#000000] font-medium opacity-80 mt-1">
-               BAJO PERFIL // 2K26.
+                BAJO PERFIL // 2K26.
               </p>
             </div>
 
@@ -147,11 +153,12 @@ export default function ProductModal({ product, onClose }) {
                   const isSelected = selectedSize === talle;
 
                   return (
+                    // OPTIMIZACIÓN: transition-colors en vez de transition-all
                     <button
                       key={talle}
                       disabled={!hayStock}
                       onClick={() => setSelectedSize(talle)}
-                      className={`w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm transition-all duration-200
+                      className={`w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm transition-colors duration-200
                         ${!hayStock 
                           ? 'border border-stone-200 text-stone-300 bg-stone-50 cursor-not-allowed line-through' 
                           : isSelected 
@@ -177,16 +184,17 @@ export default function ProductModal({ product, onClose }) {
             <p className="text-sm text-stone-900 font-medium mb-3">Cantidad:</p>
             
             <div className="flex items-center justify-between border border-stone-300 rounded-full h-12 w-32 px-2 bg-white mb-5">
-              <button onClick={decreaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors font-medium cursor-pointer">-</button>
+              <button onClick={decreaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors duration-200 font-medium cursor-pointer">-</button>
               <div className="flex-1 text-center font-bold text-stone-900 text-sm">{quantity}</div>
-              <button onClick={increaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors font-medium cursor-pointer">+</button>
+              <button onClick={increaseQuantity} className="w-10 h-full flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors duration-200 font-medium cursor-pointer">+</button>
             </div>
             
             <div className="flex flex-col gap-3">
+              {/* OPTIMIZACIÓN: transition-colors en vez de transition-all */}
               <button 
                 onClick={handleAddToCart}
                 disabled={!selectedSize && tallesDisponibles.length > 0}
-                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-all duration-300 ${
+                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-colors duration-200 ${
                   selectedSize || tallesDisponibles.length === 0
                     ? 'bg-black text-white hover:bg-stone-800 shadow-md cursor-pointer' 
                     : 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
@@ -198,7 +206,7 @@ export default function ProductModal({ product, onClose }) {
               <button 
                 onClick={handleBuyNow}
                 disabled={!selectedSize && tallesDisponibles.length > 0}
-                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-all duration-300 border-2 ${
+                className={`w-full h-12 flex items-center justify-center text-xs font-bold tracking-widest uppercase rounded-full transition-colors duration-200 border-2 ${
                   selectedSize || tallesDisponibles.length === 0
                     ? 'border-black bg-black text-white hover:bg-white hover:text-black shadow-md cursor-pointer' 
                     : 'border-stone-200 bg-stone-50 text-stone-400 cursor-not-allowed'
