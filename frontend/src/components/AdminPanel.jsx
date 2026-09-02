@@ -22,9 +22,8 @@ export default function AdminPanel() {
   
   const [editingId, setEditingId] = useState(null);
 
-  // ESTADO INICIAL ACTUALIZADO: Agregamos precioOriginal
   const [formData, setFormData] = useState({
-    name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: []
+    name: '', price: '', priceOriginal: '', description: '', categoria: 'Remera', images: [], sizes: []
   });
 
   const handleLogin = async (e) => {
@@ -125,7 +124,7 @@ export default function AdminPanel() {
       name: product.name,
       price: product.price,
       // NUEVO: Cargamos el precio original si existe
-      precioOriginal: product.precioOriginal || '',
+      priceOriginal: product.priceOriginal || '',
       description: product.description,
       categoria: product.categoria || 'Remera',
       images: product.images.map(img => img.url), 
@@ -136,7 +135,7 @@ export default function AdminPanel() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+    setFormData({ name: '', price: '', priceOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
   };
 
   const handleSubmit = async (e) => {
@@ -164,7 +163,7 @@ export default function AdminPanel() {
         return handleLogout();
       }
 
-      setFormData({ name: '', price: '', precioOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
+      setFormData({ name: '', price: '', priceOriginal: '', description: '', categoria: 'Remera', images: [], sizes: [] });
       setEditingId(null); 
       fetchProducts();
     } catch (error) {
@@ -257,8 +256,8 @@ export default function AdminPanel() {
                 <input 
                   type="number" 
                   className="w-full p-3 border border-stone-300 bg-white" 
-                  value={formData.precioOriginal} 
-                  onChange={(e) => setFormData({...formData, precioOriginal: e.target.value})} 
+                  value={formData.priceOriginal} 
+                  onChange={(e) => setFormData({...formData, priceOriginal: e.target.value})} 
                 />
               </div>
             </div>
@@ -342,8 +341,8 @@ export default function AdminPanel() {
                       <h3 className="font-bold text-sm uppercase">{product.name}</h3>
                       <p className="text-xs mb-2">
                         {/* Mostramos también en el panel si la prenda tiene descuento aplicado */}
-                        {product.precioOriginal && (
-                          <span className="line-through text-stone-400 mr-2">${product.precioOriginal.toLocaleString('es-AR')}</span>
+                        {product.priceOriginal && (
+                          <span className="line-through text-stone-400 mr-2">${product.priceOriginal.toLocaleString('es-AR')}</span>
                         )}
                         ${product.price.toLocaleString('es-AR')}
                       </p>
