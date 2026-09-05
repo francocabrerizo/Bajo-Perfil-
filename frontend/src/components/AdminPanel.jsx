@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Trash2, Plus, Lock, UploadCloud, X, Edit } from 'lucide-react';
 
 // === CONFIGURACIÓN DE LISTAS ===
-const CATEGORIAS = ['Remera', 'Abrigo', 'Pantalon', 'Calzado'];
+const CATEGORIAS = ['Remeras', 'Abrigos', 'Pantalones', 'Calzados'];
 const TALLES_ROPA = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLES_CALZADO = ['38', '39', '40', '41', '42', '43', '44', '45'];
 
