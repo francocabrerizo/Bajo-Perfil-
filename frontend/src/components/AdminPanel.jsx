@@ -298,7 +298,7 @@ export default function AdminPanel() {
             <div>
               <label className="text-xs font-bold text-stone-500 uppercase block mb-2">Talles</label>
               <div className="flex flex-wrap gap-2">
-                {(formData.categoria === 'Calzado' ? TALLES_CALZADO : TALLES_ROPA).map(size => (
+                {(formData.categoria === 'Calzados' ? TALLES_CALZADO : TALLES_ROPA).map(size => (
                   <button 
                     key={size} 
                     type="button" 

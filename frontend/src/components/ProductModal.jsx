@@ -19,7 +19,7 @@ export default function ProductModal({ product, onClose }) {
   const tallesArray = product.talles || product.sizes || [];
   const categoria = product.categoria || product.category || 'Remera';
 
-  const isCalzado = categoria.toLowerCase() === 'calzado';
+  const isCalzado = categoria.toLowerCase() === 'calzados';
   const tallesMaestros = isCalzado 
     ? ['38', '39', '40', '41', '42', '43', '44', '45']
     : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
