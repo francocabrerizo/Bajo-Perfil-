@@ -8,7 +8,7 @@ import AdminPanel from './components/AdminPanel';
 export default function App() {
   
   // Mensaje de la barra superior
-  const mensaje = "BAJO PERFIL WEB INAUGURACION - Hasta 20% OFF";
+  const mensaje = "LIQUIDACIÓN INVIERNO - Hasta 20% OFF";
   
   // Multiplicamos el texto 8 veces para que llene cualquier pantalla
   const repeticiones = [...Array(8)].map((_, i) => (
@@ -24,7 +24,7 @@ export default function App() {
   return (
     <BrowserRouter>
       {/* BARRA SUPERIOR ANIMADA (TICKER) */}
-      <div className="w-full bg-red-600 text-white overflow-hidden flex items-center h-8 sm:h-10 relative">
+      <div className="w-full bg-blue-600 text-white overflow-hidden flex items-center h-8 sm:h-10 relative">
         <div className="animate-ticker flex">
           {/* Renderizamos las repeticiones DOS veces para el loop infinito */}
           <div className="flex">{repeticiones}</div>
